@@ -1,3 +1,7 @@
+/*
+	Este código inclui configurações para o servidor, tratamento de logs, manipulação de templates e inicialização da aplicação.
+*/
+
 package main
 
 import (
@@ -12,19 +16,17 @@ import (
 
 const version = "1.0.0"
 
-// cssVersion será adicionado a qualquer arquivo CSS ou JS. Quando incrementado, isso forçará a maioria dos navegadores
-// a desativar a nova versão. Isso resolverá o problema de ter que limpar o cache quando as coisas não estiverem
-// funcionando
+// cssVersion é incrementado para forçar a atualização de arquivos CSS e JS no cache do navegador,
+// garantindo que os usuários recebam as versões mais recentes após alterações no código.
 const cssVersion = "1"
 
-// config armazena configurações pra aplicação
+// config armazena configurações para a aplicação
 type config struct {
 	port int
 	// env = production, development por ex.
 	env string
 	api string
-	// db - dsn é o Data Source Name
-	db struct {
+	db  struct {
 		dsn string
 	}
 	stripe struct {
@@ -43,6 +45,7 @@ type application struct {
 }
 
 func (app *application) serve() error {
+	// Configuração do servidor HTTP
 	srv := &http.Server{
 		Addr:              fmt.Sprintf(":%d", app.config.port),
 		Handler:           app.routes(),
@@ -52,28 +55,31 @@ func (app *application) serve() error {
 		WriteTimeout:      5 * time.Second,
 	}
 
+	// Iniciando o servidor
 	app.infoLog.Printf("Iniciando servidor HTTP em modo %s na porta %d", app.config.env, app.config.port)
 	return srv.ListenAndServe()
 }
 
 func main() {
+	// Configuração das flags de linha de comando
 	var cfg config
-
 	flag.IntVar(&cfg.port, "port", 4000, "Porta para o servidor escutar")
 	flag.StringVar(&cfg.env, "env", "development", "Ambiente da aplicação {development|production}")
 	flag.StringVar(&cfg.api, "api", "http://localhost:40001", "URL para a api")
-
 	flag.Parse()
 
+	// Configuração das credenciais Stripe a partir de variáveis de ambiente
 	cfg.stripe.key = os.Getenv("STRIPE_KEY")
 	cfg.stripe.secret = os.Getenv("STRIPE_SECRET")
 
+	// Configuração dos logs
 	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 	errorLog := log.New(os.Stdout, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 
-	// tc é o template cache
+	// tc é o cache de templates
 	tc := make(map[string]*template.Template)
 
+	// Inicialização da aplicação
 	app := &application{
 		config:        cfg,
 		infoLog:       infoLog,
@@ -81,6 +87,8 @@ func main() {
 		templateCache: tc,
 		version:       version,
 	}
+
+	// Inicia o servidor
 	err := app.serve()
 	if err != nil {
 		app.errorLog.Println(err)
