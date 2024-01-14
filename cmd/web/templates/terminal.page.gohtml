@@ -5,45 +5,52 @@
 {{end}}
 
 {{define "content"}}
-<h2 class="mt-3 text-center">Terminal Virtual</h2>
-<hr>
-
-<form action="/payment-succeeded" method="post"
-    name="charge_form" id="charge_form"
-    class="d-block needs-validation charge-form"
-    autocomplete="off" novalidate="">
-
-    <div class="mb-3">
-        <label for="amount" class="form-label">Valor:</label>
-        <input type="text" class="form-control" id="amount" name="amount"
-            required="" autocomplete="amount-new">
-    </div>
-
-    <div class="mb-3">
-        <label for="cardholder-name" class="form-label">Titular do cartão:</label>
-        <input type="text" class="form-control" id="cardholder-name" name="cardholder_name"
-               required="" autocomplete="cardholder-name-new">
-    </div>
-
-    <div class="mb-3">
-        <label for="cardholder-email" class="form-label">Email do titular:</label>
-        <input type="email" class="form-control" id="cardholder-email" name="cardholder_email"
-               required="" autocomplete="cardholder-email-new">
-    </div>
-
-    {{/* Número do cartão será construído pela Stripe */}}
-    <div class="mb-3">
-        <label for="card-element" class="form-label">Cartão de Crédito</label>
-        <div class="form-control" id="card-element"></div>
-        <div class="alert-danger text-center" id="card-errors" role="alert"></div>
-        <div class="alert-success text-center" id="card-success" role="alert"></div>
-    </div>
-
+    <h2 class="mt-3 text-center">Terminal Virtual</h2>
     <hr>
 
-    <a href="javascript:void(0)" class="btn btn-primary" onclick="val()" id="pay-button">Cobrar cartão</a>
+    <div class="alert alert-danger text-center d-none" id="card-messages"></div>
+        <form action="/payment-succeeded" method="post"
+              name="charge_form" id="charge_form"
+              class="d-block needs-validation charge-form"
+              autocomplete="off" novalidate="">
 
-</form>
+            <div class="mb-3">
+                <label for="amount" class="form-label">Valor:</label>
+                <input type="text" class="form-control" id="amount" name="amount"
+                       required="" autocomplete="amount-new">
+            </div>
+
+            <div class="mb-3">
+                <label for="cardholder-name" class="form-label">Titular do cartão:</label>
+                <input type="text" class="form-control" id="cardholder-name" name="cardholder_name"
+                       required="" autocomplete="cardholder-name-new">
+            </div>
+
+            <div class="mb-3">
+                <label for="cardholder-email" class="form-label">Email do titular:</label>
+                <input type="email" class="form-control" id="cardholder-email" name="cardholder_email"
+                       required="" autocomplete="cardholder-email-new">
+            </div>
+
+            {{/* Número do cartão será construído pela Stripe */}}
+            <div class="mb-3">
+                <label for="card-element" class="form-label">Cartão de Crédito</label>
+                <div class="form-control" id="card-element"></div>
+                <div class="alert-danger text-center" id="card-errors" role="alert"></div>
+                <div class="alert-success text-center" id="card-success" role="alert"></div>
+            </div>
+
+            <hr>
+
+            <a href="javascript:void(0)" class="btn btn-primary" onclick="val()" id="pay-button">Cobrar cartão</a>
+            <div id="processing-payment" class="text-center d-none">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+
+        </form>
+
 {{end}}
 
 {{define "js"}}
@@ -52,38 +59,48 @@
     <script>
       let card;
       let stripe;
+      const cardMessages = document.getElementById("card-messages");
+      const payButton = document.getElementById("pay-button");
+      const processing = document.getElementById("processing-payment");
 
-      stripe = Stripe('pk_test_51OYYtsC2WTGPS6T0DTsDRf7DbXqR3A8PNGoQAysKaz3j8YwYvszFDqWqPXxE245JERps787TL99fq9PyqmIpR0uS00R56PE7mq')
+      stripe = Stripe('pk_test_51OYYtsC2WTGPS6T0DTsDRf7DbXqR3A8PNGoQAysKaz3j8YwYvszFDqWqPXxE245JERps787TL99fq9PyqmIpR0uS00R56PE7mq');
 
-        function val() {
-
+      function val() {
+        let form = document.getElementById("charge_form");
+        if (form.checkValidity() === false) {
+          this.event.preventDefault();
+          this.event.stopPropagation();
+          form.classList.add("was-validated");
+          return;
         }
+        form.classList.add("was-validated");
+      }
 
       (function () {
         const elements = stripe.elements();
         const style = {
-          base : {
+          base: {
             fontSize: '16px',
-            lineHeight: '24px',
+            lineHeight: '24px'
           }
         };
         card = elements.create('card', {
           style: style,
-          hidePostalCode: true,
+          hidePostalCode: true
         });
         card.mount("#card-element");
 
         card.addEventListener('change', function (event) {
           var displayError = document.getElementById('card-errors');
-          if (event.error){
+          if (event.error) {
 
-          displayError.classList.remove('d-none');
-          displayError.textContent = event.error.message;
+            displayError.classList.remove('d-none');
+            displayError.textContent = event.error.message;
           } else {
             displayError.classList.add('d-none');
             displayError.textContent = '';
           }
-        })
+        });
       })();
 
     </script>
