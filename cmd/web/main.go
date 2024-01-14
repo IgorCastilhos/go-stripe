@@ -56,7 +56,8 @@ func (app *application) serve() error {
 	}
 
 	// Iniciando o servidor
-	app.infoLog.Printf("Iniciando servidor HTTP em modo %s na porta %d", app.config.env, app.config.port)
+	app.infoLog.Printf(fmt.Sprintf("Iniciando servidor HTTP em modo %s na porta %d", app.config.env, app.config.port))
+
 	return srv.ListenAndServe()
 }
 
@@ -65,7 +66,7 @@ func main() {
 	var cfg config
 	flag.IntVar(&cfg.port, "port", 4000, "Porta para o servidor escutar")
 	flag.StringVar(&cfg.env, "env", "development", "Ambiente da aplicação {development|production}")
-	flag.StringVar(&cfg.api, "api", "http://localhost:40001", "URL para a api")
+	flag.StringVar(&cfg.api, "api", "http://localhost:4001", "URL para a api")
 	flag.Parse()
 
 	// Configuração das credenciais Stripe a partir de variáveis de ambiente
