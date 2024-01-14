@@ -44,7 +44,7 @@ func (app *application) addDefaultData(td *templateData, request *http.Request) 
 func (app *application) renderTemplate(writer http.ResponseWriter, request *http.Request, page string, td *templateData, partials ...string) error {
 	var t *template.Template
 	var err error
-	templateToRender := fmt.Sprintf("templates/%s.page.tmpl", page)
+	templateToRender := fmt.Sprintf("templates/%s.page.gohtml", page)
 
 	// Verifica se o template está no cache antes de tentar reconstruir
 	_, templateInMap := app.templateCache[templateToRender]
@@ -86,16 +86,16 @@ func (app *application) parseTemplate(partials []string, page, templateToRender 
 	// Constrói os caminhos para os partials
 	if len(partials) > 0 {
 		for i, x := range partials {
-			partials[i] = fmt.Sprintf("templates/%s.partial.tmpl", x)
+			partials[i] = fmt.Sprintf("templates/%s.partial.gohtml", x)
 		}
 	}
 
 	// Cria o template com os partials e o template principal
 	if len(partials) > 0 {
-		t, err = template.New(fmt.Sprintf("%s.page.tmpl", page)).Funcs(functions).ParseFS(templateFS, "templates/base.layout.tmpl", strings.Join(partials, ","), templateToRender)
+		t, err = template.New(fmt.Sprintf("%s.page.gohtml", page)).Funcs(functions).ParseFS(templateFS, "templates/base.layout.gohtml", strings.Join(partials, ","), templateToRender)
 	} else {
 		// Caso não haja partials
-		t, err = template.New(fmt.Sprintf("%s.page.tmpl", page)).Funcs(functions).ParseFS(templateFS, "templates/base.layout.tmpl", templateToRender)
+		t, err = template.New(fmt.Sprintf("%s.page.gohtml", page)).Funcs(functions).ParseFS(templateFS, "templates/base.layout.gohtml", templateToRender)
 	}
 	if err != nil {
 		app.errorLog.Println(err)
